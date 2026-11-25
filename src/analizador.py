@@ -5,57 +5,68 @@ class ANALIZADOR(Parser):
     # Importar los tokens de "Lexico.py"
     tokens = lexico.tokens
     
-    # Orden de lectura
-    precedence = (
-        ('left', 'SUMA', 'RESTA'),
-        ('left', 'MULTIPLICACION', 'DIVISION'),
-    )
+    start = 'sentencia'
     
     # Al iniciar
     def __init__(self, variable : dict = None):
-        self.variables = variable or {}
+        self.variables = variable if variable is not None else {}
     
-    # "OperacionAritmetica" es una expresion
-    @_('OperacionAritmetica')
-    def expresion(self, p):
-        return p[0]
+    @_('ID ASIGNACION expresion')
+    def sentencia(self, p):
+        self.variables[p.ID] = p.expresion
+        return p.expresion
 
-    # "literal" es una expresion
-    @_('literal')
-    def expresion(self, p):
+    @_('expresion')
+    def sentencia(self, p):
         return p[0]
     
     # Suma
-    @_('expresion SUMA expresion')
-    def OperacionAritmetica(self, p):
+    @_('expresion SUMA termino')
+    def expresion(self, p):
         try:
-            return p[0] + p[2]
+            return p.expresion + p.termino
         except TypeError:
             return None
             
     # Resta
-    @_('expresion RESTA expresion')
-    def OperacionAritmetica(self, p):
+    @_('expresion RESTA termino')
+    def expresion(self, p):
         try:
-            return p[0] - p[2]
+            return p.expresion - p.termino
         except TypeError:
             return None
             
     # Multiplicacion
-    @_('expresion MULTIPLICACION expresion')
-    def OperacionAritmetica(self, p):
+    @_('termino')
+    def expresion(self, p):
+        return p[0]
+
+    @_('termino MULTIPLICACION factor')
+    def termino(self, p):
         try:
-            return p[0] * p[2]
+            return p.termino * p.factor
         except TypeError:
             return None
             
     # Division
-    @_('expresion DIVISION expresion')
-    def OperacionAritmetica(self, p):
+    @_('termino DIVISION factor')
+    def termino(self, p):
         try:
-            return p[0] / p[2]
+            return p.termino / p.factor
         except TypeError:
             return None
+
+    @_('factor')
+    def termino(self, p):
+        return p[0]
+
+    @_('PARENTESIS_I expresion PARENTESIS_D')
+    def factor(self, p):
+        return p.expresion
+
+    @_('literal')
+    def factor(self, p):
+        return p[0]
             
     @_('NUMERO',
        'NUMERO "." NUMERO',

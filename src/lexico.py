@@ -29,6 +29,8 @@ class LEXICO(Lexer):
     MULTIPLICACION  = r"\*"
     DIVISION        = r"\/"
     ASIGNACION      = r"\="
+    PARENTESIS_I    = r"\("
+    PARENTESIS_D    = r"\)"
     
     @_(r"[0-9]+")
     def NUMERO(self, t):
