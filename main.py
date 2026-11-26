@@ -1,16 +1,20 @@
 from src.lexico import LEXICO
 from src.analizador import ANALIZADOR
+from src.interprete import Interprete
+from src.errores import ErrorLenguaje
 
 def main():
-    lexer = LEXICO()
-    parser = ANALIZADOR()
+    lexer, parser, interprete = LEXICO(), ANALIZADOR(), Interprete()
     while True:
-        text = input(">>> ")
-        if text == "exit":
+        texto = input(">>> ")
+        if texto == "exit":
             break
-        else:
-            tokens = lexer.tokenize(text)
-            print(parser.parse(tokens))
+        try:
+            ast = parser.parse(lexer.tokenize(texto))
+            if ast is not None:
+                print(interprete.ejecutar(ast))
+        except ErrorLenguaje as e:
+            print(f"Error: {e}")
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

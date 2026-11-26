@@ -1,82 +1,51 @@
+"""Solo gramatica: reconoce la sintaxis y construye el AST. No calcula nada."""
 from sly import Parser
 from .lexico import LEXICO as lexico
+from .nodos import *
+from .errores import ErrorSintactico
 
 class ANALIZADOR(Parser):
-    # Importar los tokens de "Lexico.py"
     tokens = lexico.tokens
-    
-    start = 'sentencia'
-    
-    # Al iniciar
-    def __init__(self, variable : dict = None):
-        self.variables = variable if variable is not None else {}
-    
-    @_('ID ASIGNACION expresion')
+    start = "sentencia"
+
+    precedence = (
+        ("left", SUMA, RESTA),
+        ("left", MULTIPLICACION, DIVISION),
+        ("right", UMENOS),
+    )
+
+    @_("ID ASIGNACION expr")
     def sentencia(self, p):
-        self.variables[p.ID] = p.expresion
-        return p.expresion
+        return Asignacion(p.ID, p.expr)
 
-    @_('expresion')
+    @_("expr")
     def sentencia(self, p):
-        return p[0]
-    
-    # Suma
-    @_('expresion SUMA termino')
-    def expresion(self, p):
-        try:
-            return p.expresion + p.termino
-        except TypeError:
-            return None
-            
-    # Resta
-    @_('expresion RESTA termino')
-    def expresion(self, p):
-        try:
-            return p.expresion - p.termino
-        except TypeError:
-            return None
-            
-    # Multiplicacion
-    @_('termino')
-    def expresion(self, p):
-        return p[0]
+        return p.expr
 
-    @_('termino MULTIPLICACION factor')
-    def termino(self, p):
-        try:
-            return p.termino * p.factor
-        except TypeError:
-            return None
-            
-    # Division
-    @_('termino DIVISION factor')
-    def termino(self, p):
-        try:
-            return p.termino / p.factor
-        except TypeError:
-            return None
+    @_("expr SUMA expr",
+       "expr RESTA expr",
+       "expr MULTIPLICACION expr",
+       "expr DIVISION expr")
+    def expr(self, p):
+        return OperacionBinaria(p[1], p.expr0, p.expr1)
 
-    @_('factor')
-    def termino(self, p):
-        return p[0]
+    @_("RESTA expr %prec UMENOS")
+    def expr(self, p):
+        return OperacionUnaria("-", p.expr)
 
-    @_('PARENTESIS_I expresion PARENTESIS_D')
-    def factor(self, p):
-        return p.expresion
+    @_("PARENTESIS_I expr PARENTESIS_D")
+    def expr(self, p):
+        return p.expr
 
-    @_('literal')
-    def factor(self, p):
-        return p[0]
-            
-    @_('NUMERO',
-       'NUMERO "." NUMERO',
-       'CADENA')
-    def literal(self, p):
-        if len(p) > 1:
-            return float(f"{p.NUMERO0}.{p.NUMERO1}")
-        return p[0]
+    @_("NUMERO", "CADENA")
+    def expr(self, p):
+        return Literal(p[0])
 
-    @_('ID') 
-    def literal(self, p):
-        return self.variables.get(p[0], 0)
-        
+    @_("ID")
+    def expr(self, p):
+        return Variable(p.ID)
+
+    def error(self, token):
+        if token is None:
+            raise ErrorSintactico("La expresion esta incompleta")
+        raise ErrorSintactico(f"Token inesperado {token.value!r}")
