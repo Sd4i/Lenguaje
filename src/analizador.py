@@ -9,6 +9,9 @@ class ANALIZADOR(Parser):
     start = "sentencia"
 
     precedence = (
+        ("left", O_LOGICO),
+        ("left", Y_LOGICO),
+        ("right", NO_LOGICO),
         ("left", SUMA, RESTA),
         ("left", MULTIPLICACION, DIVISION),
         ("right", UMENOS),
@@ -32,6 +35,15 @@ class ANALIZADOR(Parser):
     @_("RESTA expr %prec UMENOS")
     def expr(self, p):
         return OperacionUnaria("-", p.expr)
+    
+    @_("expr Y_LOGICO expr",
+       "expr O_LOGICO expr")
+    def expr(self, p):
+        return OperacionBinaria(p[1], p.expr0, p.expr1)
+    
+    @_("NO_LOGICO expr")
+    def expr(self, p):
+        return OperacionUnaria("!", p.expr)
 
     @_("PARENTESIS_I expr PARENTESIS_D")
     def expr(self, p):
@@ -40,6 +52,10 @@ class ANALIZADOR(Parser):
     @_("NUMERO", "CADENA")
     def expr(self, p):
         return Literal(p[0])
+    
+    @_("BOOLEANO")
+    def expr(self, p):
+        return Literal(p.BOOLEANO == "True")
 
     @_("ID")
     def expr(self, p):

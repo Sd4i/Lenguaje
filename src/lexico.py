@@ -3,9 +3,10 @@ from .errores import ErrorLexico
 
 class LEXICO(Lexer):
     tokens = {
-        NUMERO, CADENA, ID,
+        NUMERO, CADENA, ID, BOOLEANO,
         SUMA, RESTA, MULTIPLICACION, DIVISION, ASIGNACION,
         PARENTESIS_I, PARENTESIS_D,
+        Y_LOGICO, O_LOGICO, NO_LOGICO,
     }
     
     # Elementos a ignorar
@@ -19,6 +20,9 @@ class LEXICO(Lexer):
     ASIGNACION      = r"\="
     PARENTESIS_I    = r"\("
     PARENTESIS_D    = r"\)"
+    Y_LOGICO        = r"&&"
+    O_LOGICO        = r"\|\|"
+    NO_LOGICO       = r"!"
     
     @_(r"\d+\.\d+", r"\d+")
     def NUMERO(self, t):
@@ -31,6 +35,8 @@ class LEXICO(Lexer):
         return t
 
     ID = r"[a-zA-Z_][a-zA-Z0-9_]*"
+    ID['True'] = BOOLEANO
+    ID['False'] = BOOLEANO
 
     def error(self, t):
         raise ErrorLexico(f"Caracter inesperado {t.value[0]!r}")

@@ -32,10 +32,21 @@ class Interprete:
         return valor
 
     def visitar_OperacionUnaria(self, n):
-        return -self.ejecutar(n.operando)
+        valor = self.ejecutar(n.operando)
+        if n.operador == '-':
+            return -valor
+        elif n.operador == '!':
+            return not valor
 
     def visitar_OperacionBinaria(self, n):
-        izq, der = self.ejecutar(n.izquierda), self.ejecutar(n.derecha)
+        izq = self.ejecutar(n.izquierda)
+
+        if n.operador == "&&":
+            return bool(izq and self.ejecutar(n.derecha))
+        if n.operador == "||":
+            return bool(izq or self.ejecutar(n.derecha))
+
+        der = self.ejecutar(n.derecha)
         try:
             return self.BINARIOS[n.operador](izq, der)
         except ZeroDivisionError:
@@ -43,4 +54,5 @@ class Interprete:
         except TypeError:
             raise ErrorEjecucion(
                 f"No se puede usar '{n.operador}' entre "
-                f"{type(izq).__name__} y {type(der).__name__}")
+                f"{type(izq).__name__} y {type(der).__name__}"
+    )

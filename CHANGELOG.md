@@ -13,3 +13,8 @@
 - "main", "lexico" y "analizador" modificados.
 ### Corregido
 - Cada elemento separado dependiendo su funcion.
+
+## 2026-11-26-2
+### Agregado
+- Operadores logicos
+- ```&&, || y !``` agregados

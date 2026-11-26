@@ -6,13 +6,21 @@ from src.errores import ErrorLenguaje
 def main():
     lexer, parser, interprete = LEXICO(), ANALIZADOR(), Interprete()
     while True:
-        texto = input(">>> ")
-        if texto == "exit":
+        try:
+            texto = input(">>> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            break
+        if not texto:
+            continue
+        if texto.lower() in {"exit", "salir"}:
             break
         try:
             ast = parser.parse(lexer.tokenize(texto))
             if ast is not None:
-                print(interprete.ejecutar(ast))
+                resultado = interprete.ejecutar(ast)
+                if resultado is not None:
+                    print(resultado)
         except ErrorLenguaje as e:
             print(f"Error: {e}")
 
